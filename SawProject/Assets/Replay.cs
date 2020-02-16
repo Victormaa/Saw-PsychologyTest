@@ -6,7 +6,7 @@ using UnityEngine.UI;
 public class Replay : MonoBehaviour
 {
     [SerializeField]
-    private float _Time = 1.5f;
+    private float _Time = 1.0f;
 
     private float TimeToappear = 0;
 

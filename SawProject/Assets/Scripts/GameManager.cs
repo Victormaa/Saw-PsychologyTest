@@ -7,7 +7,7 @@ using UnityEngine.UI;
 public class GameManager : MonoBehaviour
 {
     [SerializeField]
-    private AudioSource _BGM;
+    private AudioClip _BGM;
     [SerializeField]
     private AudioSource _AEha;
     public AudioSource getAEha()
@@ -60,11 +60,16 @@ public class GameManager : MonoBehaviour
         t = 0;
     }
 
-    
+
     // Start is called before the first frame update
     void Start()
     {
-        
+        Invoke("PlayBGM",1.5f);
+    }
+
+    void PlayBGM()
+    {
+        MusicManager.instance.PlayMusic(_BGM, 118);
     }
 
     float t = 0;
@@ -72,6 +77,12 @@ public class GameManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            Application.Quit();
+        }
+
         if (GameBegin)
         {
             t += Time.deltaTime;
@@ -112,7 +123,7 @@ public class GameManager : MonoBehaviour
 
     public void EndScene()
     {
-        _BGM.Stop();
+        MusicManager.instance.StopMusicSmooth();
         if (player1.isdead && player2.isdead)
         {
             TwoDead.SetActive(true);
