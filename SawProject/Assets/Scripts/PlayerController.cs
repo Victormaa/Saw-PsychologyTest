@@ -6,6 +6,18 @@ using UnityEngine.UI;
 
 public class PlayerController : MonoBehaviour
 {
+    public GameObject FootLock;
+
+    public Transform Adefaultpos;
+    public Transform Bdefaultpos;
+    public Transform Mashring;
+    public Transform Mashcircle;
+
+    public bool Amovable = true;
+    public bool Bmovable = true;
+
+    private Animator PlayerAnimator;
+
     #region Character parametre
 
     [SerializeField]
@@ -20,12 +32,11 @@ public class PlayerController : MonoBehaviour
     private bool facingRight = true;
     #endregion
 
-    //********* For Charactor
-
+// these bool is about dead which could be use to judge about the success and also should dead happens.
     [SerializeField]
     private bool IsPlayerA = true;
-
     public bool isdead = false;
+    private static bool Onedead = false;
 
     private static int LockNum = 2;
 
@@ -36,27 +47,66 @@ public class PlayerController : MonoBehaviour
         myrigidbody = GetComponent<Rigidbody2D>();
 
         LockNum = 2;
+
+        Parametre.MoveSpeed = 2;
+
+        isfootlock = true;
+        IronLock = true;
+        Onedead = false;
+
+        PlayerAnimator = gameObject.GetComponent<Animator>();
     }
 
     public delegate void Unlock();
 
     public Unlock unlockevent;
 
+    public Unlock OneguyDie;
+
     public int unlock()
     {
         return LockNum--;
     }
 
-    int damagerate = 0;
+    public bool Amoved = false;
+    public bool Bmoved = false;
+
+    //value for checking about the time to execute action
+    float damagerate = 0;
+    float ChangeSpeedRate = 0;
+
+    // this two lock for checking is player got a footlock or ironlock
+    public bool isfootlock = true;
+    [SerializeField]
+    public static bool IronLock = true;
 
     public float Damage()
     {
-        damagerate++;
+        damagerate += Time.deltaTime;
 
-        if(damagerate > 20)
+        if(damagerate > 0.7f)
         {
-            Parametre.HealthPoint -= 1;
-            damagerate = 0;
+            Parametre.HealthPoint -= 2.5f;
+
+            if (IsPlayerA)
+            {
+                GameManager.Instance.getAEha().Play();
+            }
+            else
+            {
+                GameManager.Instance.getBEha().Play();
+            }
+            this.GetComponent<SpriteRenderer>().color = new Color(1, 100.0f / 255.5f, 100.0f / 255.0f);
+            damagerate = 0.0f;
+        }
+        // there is some question about the logic
+        if (!GameManager.Instance.getAEha().isPlaying)
+        {
+            this.GetComponent<SpriteRenderer>().color = new Color(1, 1, 1);
+        }
+        else if (!GameManager.Instance.getBEha().isPlaying)
+        {
+            this.GetComponent<SpriteRenderer>().color = new Color(1, 1, 1);
         }
 
         return Parametre.HealthPoint;
@@ -67,55 +117,211 @@ public class PlayerController : MonoBehaviour
     {       
         if(_locknum == 0)
         {
-            if (this.gameObject.GetComponent<DistanceJoint2D>())
+            if (this.gameObject.GetComponent<DistanceJoint2D>()&& this.gameObject.GetComponent<FixedJoint2D>())
             {
-                this.gameObject.GetComponent<DistanceJoint2D>().enabled = false;
-            }
-            if (this.gameObject.GetComponent<FixedJoint2D>())
-            {
-                this.gameObject.GetComponent<FixedJoint2D>().enabled = false;
-            }
+                unlockevent += UnlockIron;
+            }           
+        }
 
-            
-            if(unlockevent != null)
+        if (unlockevent != null)
+        {
+            unlockevent();
+        }
+
+        if(OneguyDie != null)
+        {
+            OneguyDie();
+        }
+
+        if (Parametre.HealthPoint <= 0)
+        {
+            Parametre.HealthPoint = 0;
+            isdead = true;
+            PlayerAnimator.SetBool("Isdead", true);
+            unlockevent += UnlockIron;
+            OneguyDie += DeadHappen;
+        }
+
+        if (60 < Parametre.HealthPoint && Parametre.HealthPoint <= 80)
+        {
+            //damage shape
+            //Debug.Log(this.name + "damage");
+        }
+        else if (30 < Parametre.HealthPoint && Parametre.HealthPoint <= 60)
+        {
+            //damage more
+            //Debug.Log(this.name + "damage more");
+        }
+        else if (10 < Parametre.HealthPoint && Parametre.HealthPoint <= 30)
+        {
+            //dying
+            //Debug.Log(this.name + "dying");
+        }
+        else if (10 > Parametre.HealthPoint && Parametre.HealthPoint > 0)
+        {
+            //Debug.Log(this.name + "unmovable");
+        }
+
+        
+        if (isfootlock)
+        {
+            ChangeSpeedRate += Time.deltaTime;
+            if (ChangeSpeedRate >= 0.5f)
             {
-                unlockevent();
+                float RandomSpeed = UnityEngine.Random.Range(1.0f, 3.0f);
+
+                this.Parametre.MoveSpeed = RandomSpeed;
+
+                ChangeSpeedRate = 0;
             }
+        }
+        else
+        {
+            this.Parametre.MoveSpeed = 5.0f;
+        }
+       
+        
+
+        //if (Amoved || Bmoved)
+        //{
+        //QTE_main.Singleton.InteruptQTE();
+        //}
+
+        if (!Amovable)
+        {
+            // show something about player could not move
+        }
+        else
+        {
+            //cancel
+        }
+        if (!Bmovable)
+        {
+            // show something about player could not move
+        }
+        else
+        {
+            //cancel
         }
     }
 
     private void FixedUpdate()
     {
-        if(!isdead)
+        if (GameManager.Instance.GameBegin)
+        {
+            if (isdead)
+                return;
+
             if (IsPlayerA)
             {
-                moveInput = Input.GetAxis("HorizontalAD");
-                myrigidbody.velocity = new Vector2(moveInput * runSpeed, myrigidbody.velocity.y);
+                if (Amovable)
+                {
+                    moveInput = Input.GetAxis("HorizontalAD");
+                    if (moveInput > 0.1f || moveInput < -.1f)
+                    {
+                        Amoved = true;
+                    }
+                    else
+                    {
+                        Amoved = false;
+                    }
+                    myrigidbody.velocity = new Vector2(moveInput * this.Parametre.MoveSpeed, myrigidbody.velocity.y);
+                }
+                else
+                {
+                    Amoved = false;
+                }
             }
             else
             {
-                moveInput = Input.GetAxis("HorizontalLR");
-                myrigidbody.velocity = new Vector2(moveInput * runSpeed, myrigidbody.velocity.y);
-            }
+                if (Bmovable)
+                {
+                    moveInput = Input.GetAxis("HorizontalLR");
+                    if (moveInput > 0.1f || moveInput < -.1f)
+                    {
+                        Bmoved = true;
+                    }
+                    else
+                    {
+                        Bmoved = false;
+                    }
+                    myrigidbody.velocity = new Vector2(moveInput * this.Parametre.MoveSpeed, myrigidbody.velocity.y);
+                }
+                else
+                {
+                    Bmoved = false;
+                }
 
-        if (facingRight == false && moveInput > 0)
+            }
+        }
+       
+    }
+
+    public void PlayerUnlocked()
+    {
+        isfootlock = false;
+        this.FootLock.transform.SetParent(GameManager.Instance.background.transform);
+        GameManager.Instance.Iron.GetComponent<IronChange>().LockerEvent(IsPlayerA);
+        unlock();
+    }
+
+    private void OnTriggerStay2D(Collider2D collision)
+    {
+        if (collision.tag == "Saw" && Parametre.HealthPoint > 0)
         {
-            Flip();
-        }else if(facingRight == true && moveInput < 0)
-        {
-            Flip();
+            Damage();
         }
     }
-    private void Flip()
+
+// only this event happens could some one get out of the room
+    private void UnlockIron()
     {
-        /*
-        facingRight = !facingRight;
-        Vector3 Scaler = transform.localScale;
-        Scaler.x *= -1;
-        transform.localScale = Scaler;
-        */
+        if (IronLock)
+        {
+            GameManager.Instance.player1.GetComponent<DistanceJoint2D>().enabled = false;
+            GameManager.Instance.player1.GetComponent<FixedJoint2D>().enabled = false;     
+            QTE_main.Singleton.InteruptQTE();
+            unlockevent -= UnlockIron;
+
+            //in case this function be called second time 
+            IronLock = false;
+        }
     }
 
-    
+    private void DeadHappen()
+    {
+        if (!Onedead)
+        {
+            if (this.CompareTag("Player1"))
+            {
+
+                GameManager.Instance.player2.PlayerUnlocked();
+                GameManager.Instance.player2.Bmovable = true;
+                Amovable = false;
+            }
+            if (this.CompareTag("Player2"))
+            {
+                Debug.Log(this.name);
+
+                GameManager.Instance.player1.PlayerUnlocked();
+                GameManager.Instance.player1.Amovable = true;
+                Bmovable = false;
+            }
+
+            QTE_main.Singleton.InteruptQTE();
+            Mashring.gameObject.SetActive(false);
+            Mashcircle.gameObject.SetActive(false);
+
+            Destroy(FindObjectsOfType<QTE_Trigger>()[0]);
+            Destroy(FindObjectsOfType<QTE_Trigger>()[1]);
+            GameManager.AliveNum -= 1;
+            OneguyDie -= DeadHappen;
+
+            UnlockIron();
+            //in case this function be called second time; 
+            Onedead = true;
+        }
+        OneguyDie -= DeadHappen;
+    }
 
 }

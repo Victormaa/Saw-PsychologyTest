@@ -4,7 +4,10 @@ using UnityEngine;
 
 public class Saw : MonoBehaviour
 {
-
+    [SerializeField]
+    CharactorParametre A;
+    [SerializeField]
+    CharactorParametre B;
     // Start is called before the first frame update
     void Start()
     {
@@ -22,29 +25,15 @@ public class Saw : MonoBehaviour
             ExtendedRate = 0;
         }
     }
-
-    private void OnTriggerEnter2D(Collider2D collision)
-    {
-        if(collision.tag == "Player")
-        {
-            collision.GetComponent<Rigidbody2D>().sleepMode = RigidbodySleepMode2D.NeverSleep;
-        }
-    }
-
     private void OnTriggerStay2D(Collider2D collision)
     {        
-        if (collision.tag == "Player")
+        if (collision.tag == "Player1" && A.HealthPoint > 0)
+        {
+            collision.GetComponent<PlayerController>().Damage();
+        }
+        if (collision.tag == "Player2" && B.HealthPoint > 0)
         {
             collision.GetComponent<PlayerController>().Damage();
         }
     }
-
-    private void OnTriggerExit2D(Collider2D collision)
-    {
-        if (collision.tag == "Player")
-        {
-            collision.GetComponent<Rigidbody2D>().sleepMode = RigidbodySleepMode2D.StartAwake;
-        }
-    }
-
 }

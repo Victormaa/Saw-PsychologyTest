@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: Parametre_A
   m_EditorClassIdentifier: 
   HealthPoint: 100
-  MoveSpeed: 2
+  MoveSpeed: 2.06652
