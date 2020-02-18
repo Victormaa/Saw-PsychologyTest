@@ -82,34 +82,43 @@ public class PlayerController : MonoBehaviour
 
     public float Damage()
     {
+        bool a = false;
         damagerate += Time.deltaTime;
 
-        if(damagerate > 0.7f)
+        //if(damagerate > 0.5f)
+            
+        if (damagerate > 0.7f)
         {
+            a = true;
+            PlayerAnimator.SetBool("Hurt", true);
+            this.GetComponent<SpriteRenderer>().color = new Color(1, 100.0f / 255.5f, 100.0f / 255.0f);
             Parametre.HealthPoint -= 2.5f;
 
             if (IsPlayerA)
             {
                 GameManager.Instance.getAEha().Play();
+                
             }
             else
             {
                 GameManager.Instance.getBEha().Play();
             }
-            this.GetComponent<SpriteRenderer>().color = new Color(1, 100.0f / 255.5f, 100.0f / 255.0f);
+            
+            if (a)
+            {
+                Invoke("StopDamageEffect", 0.4f);
+                a = false;
+            }
+            
             damagerate = 0.0f;
         }
-        // there is some question about the logic
-        if (!GameManager.Instance.getAEha().isPlaying)
-        {
-            this.GetComponent<SpriteRenderer>().color = new Color(1, 1, 1);
-        }
-        else if (!GameManager.Instance.getBEha().isPlaying)
-        {
-            this.GetComponent<SpriteRenderer>().color = new Color(1, 1, 1);
-        }
-
         return Parametre.HealthPoint;
+    }
+
+    void StopDamageEffect()
+    {      
+            this.GetComponent<SpriteRenderer>().color = new Color(1, 1, 1);
+            PlayerAnimator.SetBool("Hurt", false);       
     }
 
     // Update is called once per frame

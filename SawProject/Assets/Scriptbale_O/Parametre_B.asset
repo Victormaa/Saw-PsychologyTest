@@ -12,5 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 360b1c94c6aef8f41809ae546311465e, type: 3}
   m_Name: Parametre_B
   m_EditorClassIdentifier: 
-  HealthPoint: 0
-  MoveSpeed: 1.0007868
+  HealthPoint: 100
+  MoveSpeed: 2.9000154

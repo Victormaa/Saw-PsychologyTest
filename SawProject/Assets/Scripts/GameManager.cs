@@ -6,6 +6,13 @@ using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
+    #region Video And Sound for the Game intro
+    // these line is for the game video and audio
+    
+    [SerializeField]
+    private UnityEngine.Video.VideoPlayer _video;
+    [SerializeField]
+    private GameObject VideoContainer;
     [SerializeField]
     private AudioClip _BGM;
     [SerializeField]
@@ -20,6 +27,7 @@ public class GameManager : MonoBehaviour
     {
         return _BEha;
     }
+    #endregion
 
     public GameObject Iron;
 
@@ -83,6 +91,15 @@ public class GameManager : MonoBehaviour
             Application.Quit();
         }
 
+
+        if (_video.time > 13.9f)
+        {
+            VideoContainer.SetActive(false);
+        }
+        if (_video.isPlaying)
+            return;
+
+
         if (GameBegin)
         {
             t += Time.deltaTime;
@@ -101,7 +118,6 @@ public class GameManager : MonoBehaviour
         }
 
         
-
 
         if (Input.GetKeyDown(KeyCode.Return))
         {
